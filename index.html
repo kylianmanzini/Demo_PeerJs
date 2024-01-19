@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PeerJS Chat</title>
+</head>
+<body>
+  <h1>PeerJS Chat</h1>
+  <div>
+    <p>Your Peer ID: <span id="currentPeerId"></span></p>
+  </div>
+  <div>
+    <label for="peerId">Enter Peer ID:</label>
+    <input type="text" id="peerId" />
+    <button onclick="connectToPeer()">Connect</button>
+  </div>
+  <div>
+    <textarea id="chatArea" rows="10" cols="40" readonly></textarea>
+    <br>
+    <input type="text" id="messageInput" />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script>
+    const peer = new Peer();
+    const currentPeerIdElement = document.getElementById('currentPeerId');
+
+    peer.on('open', (id) => {
+      console.log('My peer ID is: ' + id);
+      currentPeerIdElement.textContent = id;
+    });
+
+    function connectToPeer() {
+      const peerId = document.getElementById('peerId').value;
+      const conn = peer.connect(peerId);
+
+      conn.on('open', () => {
+        console.log(`Connected to ${peerId}`);
+        conn.on('data', (data) => {
+          appendToChat(`Received: ${data}`);
+        });
+      });
+    }
+
+    function sendMessage() {
+      const messageInput = document.getElementById('messageInput');
+      const chatArea = document.getElementById('chatArea');
+
+      const message = messageInput.value;
+      appendToChat(`Sent: ${message}`);
+
+      // Send the message to the connected peer
+      peer.connections.forEach((connection) => {
+        connection.send(message);
+      });
+
+      // Clear the input field
+      messageInput.value = '';
+    }
+
+    function appendToChat(message) {
+      const chatArea = document.getElementById('chatArea');
+      chatArea.value += message + '\n';
+    }
+  </script>
+</body>
+</html>
